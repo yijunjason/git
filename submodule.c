@@ -440,6 +440,36 @@ const char *submodule_strategy_to_string(const struct submodule_update_strategy 
 	return NULL;
 }
 
+struct submodule_update_strategy submodule_strategy_with_config_overlayed(struct repository *repo,
+									  const struct submodule *sub)
+{
+	struct submodule_update_strategy strat = sub->update_strategy;
+	const char *update;
+	char *key;
+
+	key = xstrfmt("submodule.%s.update", sub->name);
+	if (!repo_config_get_string_const(repo, key, &update)) {
+		strat.command = NULL;
+		if (!strcmp(update, "none")) {
+			strat.type = SM_UPDATE_NONE;
+		} else if (!strcmp(update, "checkout")) {
+			strat.type = SM_UPDATE_CHECKOUT;
+		} else if (!strcmp(update, "rebase")) {
+			strat.type = SM_UPDATE_REBASE;
+		} else if (!strcmp(update, "merge")) {
+			strat.type = SM_UPDATE_MERGE;
+		} else if (skip_prefix(update, "!", &update)) {
+			strat.type = SM_UPDATE_COMMAND;
+			strat.command = update;
+		} else {
+			die("invalid submodule update strategy '%s'", update);
+		}
+	}
+	free(key);
+
+	return strat;
+}
+
 void handle_ignore_submodules_arg(struct diff_options *diffopt,
 				  const char *arg)
 {

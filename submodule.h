@@ -6,6 +6,7 @@ struct diff_options;
 struct argv_array;
 struct oid_array;
 struct remote;
+struct submodule;
 
 enum {
 	RECURSE_SUBMODULES_ONLY = -5,
@@ -65,6 +66,8 @@ extern void die_path_inside_submodule(const struct index_state *istate,
 extern int parse_submodule_update_strategy(const char *value,
 		struct submodule_update_strategy *dst);
 extern const char *submodule_strategy_to_string(const struct submodule_update_strategy *s);
+extern struct submodule_update_strategy submodule_strategy_with_config_overlayed(struct repository *repo,
+										 const struct submodule *sub);
 extern void handle_ignore_submodules_arg(struct diff_options *, const char *);
 extern void show_submodule_summary(FILE *f, const char *path,
 		const char *line_prefix,
