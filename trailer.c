@@ -295,6 +295,8 @@ static void apply_arg_if_exists(struct trailer_item *in_tok,
 		else
 			free_arg_item(arg_tok);
 		break;
+	default:
+		break; /* nothing */
 	}
 }
 
@@ -316,6 +318,8 @@ static void apply_arg_if_missing(struct list_head *head,
 			list_add_tail(&to_add->list, head);
 		else
 			list_add(&to_add->list, head);
+	default:
+		break; /* nothing */
 	}
 }
 
@@ -712,9 +716,11 @@ static void process_command_line_args(struct list_head *arg_head,
 
 	/* Add an arg item for each trailer on the command line */
 	list_for_each(pos, new_trailer_head) {
+		int separator_pos;
+
 		tr = list_entry(pos, struct new_trailer_item, list);
 		string = tr->text;
-		int separator_pos = find_separator(string, cl_separators);
+		separator_pos = find_separator(string, cl_separators);
 		if (separator_pos == 0) {
 			struct strbuf sb = STRBUF_INIT;
 			strbuf_addstr(&sb, string);
