@@ -1,5 +1,6 @@
 #define NO_THE_INDEX_COMPATIBILITY_MACROS
 #include "cache.h"
+#include "repository.h"
 #include "config.h"
 #include "dir.h"
 #include "tree.h"
@@ -255,13 +256,16 @@ static int check_submodule_move_head(const struct cache_entry *ce,
 {
 	unsigned flags = SUBMODULE_MOVE_HEAD_DRY_RUN;
 	const struct submodule *sub = submodule_from_ce(ce);
+	struct submodule_update_strategy update;
+
 	if (!sub)
 		return 0;
 
 	if (o->reset)
 		flags |= SUBMODULE_MOVE_HEAD_FORCE;
 
-	switch (sub->update_strategy.type) {
+	update = submodule_strategy_with_config_overlayed(the_repository, sub);
+	switch (update.type) {
 	case SM_UPDATE_UNSPECIFIED:
 	case SM_UPDATE_CHECKOUT:
 		if (submodule_move_head(ce->name, old_id, new_id, flags))
@@ -293,7 +297,6 @@ static void reload_gitmodules_file(struct index_state *index,
 				submodule_free();
 				checkout_entry(ce, state, NULL);
 				gitmodules_config();
-				git_config(submodule_config, NULL);
 			} else
 				break;
 		}
@@ -308,7 +311,10 @@ static void unlink_entry(const struct cache_entry *ce)
 {
 	const struct submodule *sub = submodule_from_ce(ce);
 	if (sub) {
-		switch (sub->update_strategy.type) {
+		struct submodule_update_strategy update =
+			submodule_strategy_with_config_overlayed(the_repository,
+								 sub);
+		switch (update.type) {
 		case SM_UPDATE_UNSPECIFIED:
 		case SM_UPDATE_CHECKOUT:
 		case SM_UPDATE_REBASE:
